@@ -1,35 +1,80 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-
+import { useState, useEffect, useCallback, useRef } from "react";
 function App() {
-  const [count, setCount] = useState(0)
+  const [length, setLength] = useState(0);
+  const [numberAllowed, setNumberAllowed] = useState(false);
+  const [charAllowed, setCharAllowed] = useState(false);
+  const [password, setPassword] = useState("");
+  const passRef = useRef();
+  const passwordGenerator = useCallback(() => {
+    let pass = "";
+    let str = "abcdefghijklmnopqorstuvwxyzABCDEFGHIJKLMNOPQORSTUVWXYZ";
+    if (numberAllowed) str += "0123456789";
+    if (charAllowed) str += "/?@#()%^&!";
+    for (let i = 1; i <= length; i++) {
+      let index = Math.floor(Math.random() * str.length) + 0;
+      pass += str[index];
+    }
+    setPassword(pass);
+  }, [length, numberAllowed, charAllowed]);
+
+  const copyToClipBoard = useCallback(() => {
+    passRef.current.select();
+    window.navigator.clipboard.writeText(password);
+  }, [length, numberAllowed, charAllowed, password]);
+
+  useEffect(() => passwordGenerator(), [length, numberAllowed, charAllowed]);
 
   return (
     <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+      <div className="w-full max-w-xl mx-auto bg-slate-300 p-2 mt-5 rounded-md">
+        <h1 className="mx-auto">Password Generator</h1>
+        <div className="flex justify-between">
+          <input
+            className="w-full outline-none overflow-hidden rounded-md"
+            type="text"
+            value={password}
+            readOnly
+            placeholder="password"
+            ref={passRef}
+          ></input>
+          <button
+            className="bg-cyan-400 rounded-md ml-2 p-1"
+            onClick={copyToClipBoard}
+          >
+            Copy
+          </button>
+        </div>
+        <div className="flex justify-between mt-2">
+          <div>
+            <input
+              className=""
+              type="range"
+              min={1}
+              max={100}
+              value={length}
+              onChange={(event) => setLength(event.target.value)}
+            ></input>
+            <label>Length({length})</label>
+          </div>
+          <div>
+            <input
+              className=""
+              type="checkbox"
+              onChange={() => setNumberAllowed((prevState) => !prevState)}
+            ></input>
+            <label>Numbers</label>
+          </div>
+          <div>
+            <input
+              type="checkbox"
+              onChange={() => setCharAllowed((prevState) => !prevState)}
+            ></input>
+            <label>Characters</label>
+          </div>
+        </div>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
